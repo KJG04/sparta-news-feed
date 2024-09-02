@@ -17,11 +17,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
+
     @Column(unique = true)
     private String email;
     private String password;
     private String name;
     private String address;
+
     @Column(name = "delete_status")
     private Boolean deleteStatus;
 
