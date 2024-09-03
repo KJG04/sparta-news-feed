@@ -6,6 +6,7 @@ import com.sparta.spartanewsfeed.dto.BoardsResponseDto;
 import com.sparta.spartanewsfeed.entity.Boards;
 import com.sparta.spartanewsfeed.entity.BoardsLike;
 import com.sparta.spartanewsfeed.entity.User;
+import com.sparta.spartanewsfeed.exception.NotFoundException;
 import com.sparta.spartanewsfeed.repository.BoardsLikeRepository;
 import com.sparta.spartanewsfeed.repository.BoardsRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,7 @@ public class BoardsService {
         if (board.getUserId().equals(user.getUserId())) {
             return new BoardsResponseDto(board.update(boardsRequestDto));
         } else {
-            throw new IllegalArgumentException("권한이 없습니다.");
+            throw new SecurityException("권한이 없습니다.");
         }
     }
 
@@ -54,11 +55,11 @@ public class BoardsService {
             boardsRepository.delete(getOneBoardWithId(boardId));
             return boardId;
         } else {
-            throw new IllegalArgumentException("권한이 없습니다.");
+            throw new SecurityException("권한이 없습니다.");
         }
     }
 
     private Boards getOneBoardWithId(Long boardId) {
-        return boardsRepository.findById(boardId).orElseThrow(() -> new IllegalArgumentException("게시글 ID를 찾을 수 없습니다."));
+        return boardsRepository.findById(boardId).orElseThrow(() -> new NotFoundException("게시글 ID를 찾을 수 없습니다."));
     }
 }

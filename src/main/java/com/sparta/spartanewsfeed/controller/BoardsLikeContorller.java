@@ -19,5 +19,4 @@ public class BoardsLikeContorller {
         return boardsLikeService.boardsLike(boardId, user);
     }
 
-
 }
