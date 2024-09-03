@@ -6,8 +6,6 @@ import com.sparta.spartanewsfeed.exception.NotFoundException;
 import com.sparta.spartanewsfeed.exception.PasswordErrorException;
 import com.sparta.spartanewsfeed.jwt.JwtUtil;
 import com.sparta.spartanewsfeed.repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,7 +53,7 @@ public class UserServiceImpl implements UserService{
     @Transactional(readOnly = true)
     @Override
     public UserResponseDto get(Long userId) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.getUser(userId)
                 .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다."));
         return new UserResponseDto(user);
     }
@@ -68,26 +66,29 @@ public class UserServiceImpl implements UserService{
             throw new SecurityException("해당 유저에 대한 엑세스 권한이 없습니다!");
         }
 
+        User newUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다."));
+
         // 비밀번호 교체에 대한 요청이 있을 시에
         if(userModifyRequestDto.getPassword() != null) {
             String password = userModifyRequestDto.getPassword();
             String newPassword = passwordEncoder.encode(userModifyRequestDto.getNewPassword());
             // 비밀번호 교체
-            if(passwordEncoder.matches(password, user.getPassword())) {
-                user.changePassword(newPassword);
+            if(passwordEncoder.matches(password, newUser.getPassword())) {
+                newUser.changePassword(newPassword);
             } else {
                 throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");
             }
         }
         // 이름 교체
         if(userModifyRequestDto.getName() != null) {
-            user.changeName(userModifyRequestDto.getName());
+            newUser.changeName(userModifyRequestDto.getName());
         }
         // 주소 교체
         if(userModifyRequestDto.getAddress() != null) {
-            user.changeAddress(userModifyRequestDto.getAddress());
+            newUser.changeAddress(userModifyRequestDto.getAddress());
         }
-        return new UserResponseDto(user);
+        return new UserResponseDto(newUser);
     }
 
     @Transactional

@@ -2,6 +2,8 @@ package com.sparta.spartanewsfeed.repository;
 
 import com.sparta.spartanewsfeed.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -10,5 +12,6 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
-    Optional<User> findByUserIdAndDeleteStatus(Long userId, Boolean deleteStatus);
+    @Query("SELECT u FROM User u WHERE u.userId = :userId AND u.deleteStatus = false")
+    Optional<User> getUser(@Param("userId") Long userId);
 }
