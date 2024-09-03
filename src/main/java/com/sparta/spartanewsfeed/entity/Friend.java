@@ -1,6 +1,7 @@
 package com.sparta.spartanewsfeed.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,4 +23,10 @@ public class Friend {
     @ManyToOne(optional = false)
     @JoinColumn(name = "to_user_id")
     User toUser;
+
+    @Builder
+    public Friend(User fromUser, User toUser) {
+        this.fromUser = fromUser;
+        this.toUser = toUser;
+    }
 }
