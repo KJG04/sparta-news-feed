@@ -62,19 +62,11 @@ public class UserServiceImpl implements UserService{
 
     @Transactional
     @Override
-    public UserResponseDto modify(Long userId, UserModifyRequestDto userModifyRequestDto, HttpServletRequest request) {
-        // exceptin 검사는 AuthFilter에서 진행됨
-        // token값을 해석해서 info에 있는 subject값
-        // 즉 토큰의 userId값과 매개변수로 온 userId값이 일치하는지 확인
-        String tokenValue = jwtUtil.getTokenFromRequest(request);
-        String token = jwtUtil.substringToken(tokenValue);
-        Claims info = jwtUtil.getUserInfoFromToken(token);
-        if(!userId.equals(Long.valueOf(info.getSubject()))) {
+    public UserResponseDto modify(Long userId, UserModifyRequestDto userModifyRequestDto, User user) {
+
+        if(!userId.equals(user.getUserId())) {
             throw new SecurityException("해당 유저에 대한 엑세스 권한이 없습니다!");
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다."));
 
         // 비밀번호 교체에 대한 요청이 있을 시에
         if(userModifyRequestDto.getPassword() != null) {
@@ -100,16 +92,12 @@ public class UserServiceImpl implements UserService{
 
     @Transactional
     @Override
-    public void delete(Long userId, UserDeleteRequestDto userDeleteRequestDto, HttpServletRequest request) {
-        String tokenValue = jwtUtil.getTokenFromRequest(request);
-        String token = jwtUtil.substringToken(tokenValue);
-        Claims info = jwtUtil.getUserInfoFromToken(token);
-        if(!userId.equals(Long.valueOf(info.getSubject()))) {
+    public void delete(Long userId, UserDeleteRequestDto userDeleteRequestDto, User user) {
+
+        if(!userId.equals(user.getUserId())) {
             throw new SecurityException("해당 유저에 대한 엑세스 권한이 없습니다!");
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("해당 회원이 없습니다."));
         String password = userDeleteRequestDto.getPassword();
         if(!passwordEncoder.matches(password, user.getPassword())) {
             throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");

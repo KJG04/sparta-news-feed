@@ -1,6 +1,7 @@
 package com.sparta.spartanewsfeed.service;
 
 import com.sparta.spartanewsfeed.dto.*;
+import com.sparta.spartanewsfeed.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -16,8 +17,8 @@ public interface UserService {
     UserResponseDto get(Long userId);
 
     // 유저 수정
-    UserResponseDto modify(Long userId, UserModifyRequestDto userModifyRequestDto, HttpServletRequest request);
+    UserResponseDto modify(Long userId, UserModifyRequestDto userModifyRequestDto, User user);
 
     // 유저 삭제
-    void delete(Long userId, UserDeleteRequestDto userDeleteRequestDto, HttpServletRequest request);
+    void delete(Long userId, UserDeleteRequestDto userDeleteRequestDto, User user);
 }

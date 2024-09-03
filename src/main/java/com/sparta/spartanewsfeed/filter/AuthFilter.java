@@ -33,8 +33,7 @@ public class AuthFilter implements Filter {
 
         try {
             if (url.startsWith("/users") || url.startsWith("/users/login")) {
-
-                // 회원가입, 로그인 관련 API 는 인증 필요없이 요청 진행
+                // /users , /users/login으로 시작하는 url이면 해당 요청은 인증할 필요없이 넘어간다.
                 chain.doFilter(request, response); // 다음 Filter 로 이동
             } else {
                 // 나머지 API 요청은 인증 처리 진행
@@ -42,7 +41,7 @@ public class AuthFilter implements Filter {
                 String tokenValue = jwtUtil.getTokenFromRequest(httpServletRequest);
 
                 if (StringUtils.hasText(tokenValue)) { // 토큰이 존재하면 검증 시작
-                    // JWT 토큰 substring
+                    // JWT 토큰 substring, Bearer 접두사를 제거하여 실제 토큰을 얻는다.
                     String token = jwtUtil.substringToken(tokenValue);
 
                     // 토큰 검증
@@ -50,18 +49,6 @@ public class AuthFilter implements Filter {
                         throw new IllegalArgumentException("Token Error");
                     }
 
-                    // 토큰에서 사용자 정보 가져오기
-                    Claims info = jwtUtil.getUserInfoFromToken(token);
-
-                    log.info("사용자 정보 확인 " + info.toString());
-
-                    User user = userRepository.findById(Long.valueOf(info.getSubject())).orElseThrow(() ->
-                            new NullPointerException("사용자를 찾을 수 없습니다.")
-                    );
-                    log.info("사용자 정보 확인 " + user);
-
-
-                    request.setAttribute("user", user);
                     chain.doFilter(request, response); // 다음 Filter 로 이동
                 } else {
                     throw new JwtException("토큰이 존재하지 않습니다!");
