@@ -18,14 +18,17 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
 @Slf4j(topic = "AuthUserArgumentResolver")
+@RequiredArgsConstructor
 public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    public AuthUserArgumentResolver(JwtUtil jwtUtil, UserRepository userRepository) {
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-    }
+
+    /*
+    * 주어진 매개변수가 resolver를 통해 처리될 수 있는지를 결정
+    * 매개변수가 User타입인 경우에만 resolver가 사용된다.
+    * 컨트롤러에 User타입의 매개변수가 있다면 작동
+    * */
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.getParameterType().equals(User.class);
@@ -38,6 +41,13 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
             NativeWebRequest webRequest,
             @Nullable WebDataBinderFactory binderFactory
     ) {
+        /*
+        * 동작 방식
+        * 1. HttpServletRequest 객체를 가져온다.
+        * 2. JwtUtil 클래스를 통해 JWT 토큰을 추출한다.
+        * 3. 토큰 존재 시 JwtUtil를 통해 파싱하여 Claims 객체를 얻고 그 안의 정보를 추출한다. sub('id'), name('name') 등
+        * 4. userRepository를 통해 DB에서 User 객체를 반환한다.
+        * */
         HttpServletRequest request = (HttpServletRequest) webRequest.getNativeRequest();
         String tokenValue = jwtUtil.getTokenFromRequest(request);
 
