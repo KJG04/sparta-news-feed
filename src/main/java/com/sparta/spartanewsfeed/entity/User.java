@@ -1,5 +1,7 @@
 package com.sparta.spartanewsfeed.entity;
 
+import com.sparta.spartanewsfeed.dto.UserRequestDto;
+import com.sparta.spartanewsfeed.dto.UserResponseDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,12 +19,32 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
-    @Column(unique = true)
+    @Column(unique = true, length = 100)
     private String email;
     private String password;
+    @Column(length = 50)
     private String name;
     private String address;
     @Column(name = "delete_status")
     private Boolean deleteStatus;
+
+    public User(UserRequestDto dto) {
+        this.email = dto.getEmail();
+        this.password = dto.getPassword();
+        this.name = dto.getName();
+        this.address = dto.getAddress();
+    }
+
+    public void changePassword(String password) {
+        this.email = password;
+    }
+
+    public void changeName(String name) {
+        this.name = name;
+    }
+
+    public void changeAddress(String address) {
+        this.address = address;
+    }
 
 }
