@@ -30,9 +30,9 @@ public class FriendService {
         // 이미 친구 추가 되어있는 경우
         if (friendRepository.findByFromUser_UserIdAndToUser_UserId(fromUserId, toUserId).isPresent())
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 친구 추가된 상태입니다.");
-        
+
         User fromUser = userRepository.findById(fromUserId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "fromUserId에 해당하는 User가 없습니다."));
-        User toUser = userRepository.findById(toUserId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "toUserId에 해당하는 User가 없습니다."));
+        User toUser = userRepository.findByUserIdAndDeleteStatus(toUserId, false).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "toUserId에 해당하는 User가 없습니다."));
         Friend friend = Friend.builder().fromUser(fromUser).toUser(toUser).build();
         return friendRepository.save(friend);
     }
@@ -45,6 +45,6 @@ public class FriendService {
 
     @Transactional
     public List<Friend> getFriendsByFromUserId(Long fromUserId) {
-        return friendRepository.findAllByFromUser_UserId(fromUserId);
+        return friendRepository.findAllByFromUser_UserIdAndToUser_DeleteStatus(fromUserId, false);
     }
 }
