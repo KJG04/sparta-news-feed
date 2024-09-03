@@ -9,12 +9,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.List;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     private final AuthUserArgumentResolver authUserArgumentResolver;
-
-    public WebConfig(AuthUserArgumentResolver authUserArgumentResolver) {
-        this.authUserArgumentResolver = authUserArgumentResolver;
-    }
 
     // ArgumentResolver 등록
     @Override
