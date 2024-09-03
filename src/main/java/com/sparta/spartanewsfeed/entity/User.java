@@ -33,10 +33,11 @@ public class User {
         this.password = dto.getPassword();
         this.name = dto.getName();
         this.address = dto.getAddress();
+        this.deleteStatus = false;
     }
 
     public void changePassword(String password) {
-        this.email = password;
+        this.password = password;
     }
 
     public void changeName(String name) {
