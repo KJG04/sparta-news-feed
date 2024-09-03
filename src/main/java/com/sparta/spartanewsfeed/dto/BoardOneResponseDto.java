@@ -4,15 +4,17 @@ import com.sparta.spartanewsfeed.entity.Boards;
 import lombok.Getter;
 
 @Getter
-public class BoardsResponseDto {
+public class BoardOneResponseDto {
     private Long boardId;
     private String contents;
+    private int likeCount;
     private Long userId;
 
-    public BoardsResponseDto(Boards board) {
+    public BoardOneResponseDto(Boards board, int likeCount) {
+        userId = board.getUserId();
         boardId = board.getBoardId();
         contents = board.getContents();
-        userId = board.getUserId();
+        this.likeCount = likeCount;
     }
 
 }
