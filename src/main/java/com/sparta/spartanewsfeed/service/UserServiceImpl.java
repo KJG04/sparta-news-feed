@@ -11,9 +11,11 @@ import com.sparta.spartanewsfeed.jwt.JwtUtil;
 import com.sparta.spartanewsfeed.repository.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -29,6 +31,11 @@ public class UserServiceImpl implements UserService{
     @Transactional
     @Override
     public UserResponseDto save(UserRequestDto userRequestDto) {
+        // email 중복 체크
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "중복된 이메일입니다.");
+        }
+
         String password = passwordEncoder.encode(userRequestDto.getPassword());
         User user = new User(userRequestDto);
         user.setPassword(password);
@@ -83,10 +90,14 @@ public class UserServiceImpl implements UserService{
         // 비밀번호 교체에 대한 요청이 있을 시에
         if(userModifyRequestDto.getPassword() != null) {
             String password = userModifyRequestDto.getPassword();
-            String newPassword = passwordEncoder.encode(userModifyRequestDto.getNewPassword());
+            String newPassword = userModifyRequestDto.getNewPassword();
+            if(password.equals(newPassword)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "동일한 비밀번호로 변경할 수 없습니다!");
+            }
+            String newPw = passwordEncoder.encode(userModifyRequestDto.getNewPassword());
             // 비밀번호 교체
             if(passwordEncoder.matches(password, newUser.getPassword())) {
-                newUser.changePassword(newPassword);
+                newUser.changePassword(newPw);
             } else {
                 throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");
             }
