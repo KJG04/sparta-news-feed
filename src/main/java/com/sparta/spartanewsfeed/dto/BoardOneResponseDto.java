@@ -1,7 +1,10 @@
 package com.sparta.spartanewsfeed.dto;
 
 import com.sparta.spartanewsfeed.entity.Boards;
+import com.sparta.spartanewsfeed.entity.Comment;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public class BoardOneResponseDto {
@@ -9,12 +12,24 @@ public class BoardOneResponseDto {
     private String contents;
     private int likeCount;
     private Long userId;
+    private List<CommentResponseDto> commentResponseDtos;
 
-    public BoardOneResponseDto(Boards board, int likeCount) {
+    public BoardOneResponseDto(Boards board, int likeCount, List<Comment> comments) {
         userId = board.getUserId();
         boardId = board.getBoardId();
         contents = board.getContents();
         this.likeCount = likeCount;
+
+        List<CommentResponseDto> commentResponseDtos = comments.stream()
+                .map(v ->
+                        CommentResponseDto.builder()
+                                .id(v.getId())
+                                .contents(v.getContents())
+                                .user(new UserResponseDto(v.getUser()))
+                                .likeCount((long) v.getLikes().size())
+                                .build()
+                ).toList();
+        this.commentResponseDtos = commentResponseDtos;
     }
 
 }
