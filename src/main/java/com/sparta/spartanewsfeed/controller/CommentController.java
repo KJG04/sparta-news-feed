@@ -7,12 +7,10 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     @GetMapping()
     void getAllComments() {
-
     }
 
     @PostMapping()
     void addComment() {
-
     }
 
     @PatchMapping("/{commentId}")
@@ -21,7 +19,6 @@ public class CommentController {
 
     @DeleteMapping("/{commentId}")
     void deleteComment(@PathVariable String commentId) {
-
     }
 
 }
