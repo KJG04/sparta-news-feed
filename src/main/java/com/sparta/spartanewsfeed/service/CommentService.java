@@ -35,7 +35,7 @@ public class CommentService {
     public Comment addComment(Long userId, Long boardId, String contents) {
         User user = userRepository.findByUserIdAndDeleteStatus(userId, false).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "userId에 해당하는 User가 없습니다."));
         Boards boards = boardsRepository.findById(boardId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "boardId에 해당하는 Board가 없습니다."));
-        Comment comment = Comment.builder().contents(contents).user(user).boards(boards).build();
+        Comment comment = Comment.builder().contents(contents).user(user).boards(boards).likes(List.of()).build();
         return commentRepository.save(comment);
     }
 

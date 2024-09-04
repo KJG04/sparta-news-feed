@@ -10,4 +10,5 @@ public class CommentResponseDto {
     Long id;
     String contents;
     UserResponseDto user;
+    Long likeCount;
 }
