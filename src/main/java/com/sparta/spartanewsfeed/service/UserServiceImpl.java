@@ -1,21 +1,29 @@
 package com.sparta.spartanewsfeed.service;
 
 import com.sparta.spartanewsfeed.dto.*;
+import com.sparta.spartanewsfeed.entity.Boards;
+import com.sparta.spartanewsfeed.entity.BoardsLike;
+import com.sparta.spartanewsfeed.entity.Friend;
 import com.sparta.spartanewsfeed.entity.User;
 import com.sparta.spartanewsfeed.exception.NotFoundException;
 import com.sparta.spartanewsfeed.exception.PasswordErrorException;
 import com.sparta.spartanewsfeed.jwt.JwtUtil;
-import com.sparta.spartanewsfeed.repository.UserRepository;
+import com.sparta.spartanewsfeed.repository.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
+    private final BoardsRepository boardsRepository;
+    private final BoardsLikeRepository boardsLikeRepository;
+    private final FriendRepository friendRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     @Transactional
@@ -38,6 +46,9 @@ public class UserServiceImpl implements UserService{
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new NotFoundException("등록된 사용자가 없습니다.")
         );
+        if(user.getDeleteStatus().equals(true)) {
+            throw new NotFoundException("탈퇴한 유저입니다.");
+        }
 
         // 비밀번호 확인
         if (!passwordEncoder.matches(password, user.getPassword())) {
@@ -95,14 +106,43 @@ public class UserServiceImpl implements UserService{
     @Override
     public void delete(Long userId, UserDeleteRequestDto userDeleteRequestDto, User user) {
 
+        User newUser = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다."));
+
+        if(newUser.getDeleteStatus().equals(true)) {
+            throw new NotFoundException("이미 탈퇴한 유저입니다!");
+        }
+
         if(!userId.equals(user.getUserId())) {
             throw new SecurityException("해당 유저에 대한 엑세스 권한이 없습니다!");
         }
 
         String password = userDeleteRequestDto.getPassword();
-        if(!passwordEncoder.matches(password, user.getPassword())) {
+        if(!passwordEncoder.matches(password, newUser.getPassword())) {
             throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");
         }
-        user.setDeleteStatus(true);
+
+        // 관련 board 데이터 삭제
+        List<Boards> userBoards = boardsRepository.findAllByUserId(userId);
+        for(Boards board : userBoards) {
+            boardsRepository.delete(board);
+
+            // 해당 게시글의 좋아요 정보 삭제
+            List<BoardsLike> boardsLikes = boardsLikeRepository.findAllByBoardId(board.getBoardId());
+            boardsLikeRepository.deleteAll(boardsLikes);
+        }
+
+        // 유저가 좋아요를 누른 모든 BoardsLike 데이터 삭제
+        List<BoardsLike> userLikes = boardsLikeRepository.findAllByUserId(userId);
+        boardsLikeRepository.deleteAll(userLikes);
+
+        // 해당 유저가 포함된 모든 친구 관계 삭제 (fromUser, toUser)
+        List<Friend> userFriendsAsFrom = friendRepository.findAllByFromUser(user);
+        List<Friend> userFriendsAsTo = friendRepository.findAllByToUser(user);
+        friendRepository.deleteAll(userFriendsAsFrom);
+        friendRepository.deleteAll(userFriendsAsTo);
+
+        // 해당 유저 삭제 상태 업데이트
+        newUser.setDeleteStatus(true);
     }
 }
