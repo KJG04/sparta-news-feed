@@ -1,7 +1,6 @@
 package com.sparta.spartanewsfeed.service;
 
 import com.sparta.spartanewsfeed.dto.BoardsLikeResponseDto;
-import com.sparta.spartanewsfeed.entity.Boards;
 import com.sparta.spartanewsfeed.entity.BoardsLike;
 import com.sparta.spartanewsfeed.entity.User;
 import com.sparta.spartanewsfeed.repository.BoardsLikeRepository;
@@ -9,9 +8,6 @@ import com.sparta.spartanewsfeed.repository.BoardsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +32,4 @@ public class BoardsLikeService {
             }
         }
     }
-
-
 }
