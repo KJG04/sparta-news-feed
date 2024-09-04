@@ -5,7 +5,6 @@ import com.sparta.spartanewsfeed.dto.UserModifyRequestDto;
 import com.sparta.spartanewsfeed.dto.UserResponseDto;
 import com.sparta.spartanewsfeed.entity.User;
 import com.sparta.spartanewsfeed.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
