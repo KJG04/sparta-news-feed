@@ -2,8 +2,6 @@ package com.sparta.spartanewsfeed.service;
 
 import com.sparta.spartanewsfeed.dto.*;
 import com.sparta.spartanewsfeed.entity.*;
-import com.sparta.spartanewsfeed.exception.NotFoundException;
-import com.sparta.spartanewsfeed.exception.PasswordErrorException;
 import com.sparta.spartanewsfeed.jwt.JwtUtil;
 import com.sparta.spartanewsfeed.repository.*;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,15 +47,15 @@ public class UserServiceImpl implements UserService{
 
         // 사용자 확인
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new NotFoundException("등록된 사용자가 없습니다.")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "로그인에 실패하였습니다!")
         );
         if(user.getDeleteStatus().equals(true)) {
-            throw new NotFoundException("탈퇴한 유저입니다.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "탈퇴한 유저입니다!");
         }
 
         // 비밀번호 확인
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "로그인에 실패하였습니다!");
         }
 
         String token = jwtUtil.createToken(user.getUserId(), user.getName());
@@ -70,7 +68,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public UserResponseDto get(Long userId) {
         User user = userRepository.getUser(userId)
-                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다!"));
         return new UserResponseDto(user);
     }
 
@@ -83,7 +81,7 @@ public class UserServiceImpl implements UserService{
         }
 
         User newUser = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다!"));
 
         // 비밀번호 교체에 대한 요청이 있을 시에
         if(userModifyRequestDto.getPassword() != null) {
@@ -97,7 +95,7 @@ public class UserServiceImpl implements UserService{
             if(passwordEncoder.matches(password, newUser.getPassword())) {
                 newUser.changePassword(newPw);
             } else {
-                throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다!");
             }
         }
         // 이름 교체
@@ -116,10 +114,10 @@ public class UserServiceImpl implements UserService{
     public void delete(Long userId, UserDeleteRequestDto userDeleteRequestDto, User user) {
 
         User newUser = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다!"));
 
         if(newUser.getDeleteStatus().equals(true)) {
-            throw new NotFoundException("이미 탈퇴한 유저입니다!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "이미 탈퇴한 유저입니다!");
         }
 
         if(!userId.equals(user.getUserId())) {
@@ -128,7 +126,7 @@ public class UserServiceImpl implements UserService{
 
         String password = userDeleteRequestDto.getPassword();
         if(!passwordEncoder.matches(password, newUser.getPassword())) {
-            throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "비밀번호가 일치하지 않습니다.");
         }
 
         // 관련 board 데이터 삭제
