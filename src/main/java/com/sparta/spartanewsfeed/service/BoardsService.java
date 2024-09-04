@@ -3,16 +3,15 @@ package com.sparta.spartanewsfeed.service;
 import com.sparta.spartanewsfeed.dto.BoardOneResponseDto;
 import com.sparta.spartanewsfeed.dto.BoardsRequestDto;
 import com.sparta.spartanewsfeed.dto.BoardsResponseDto;
-import com.sparta.spartanewsfeed.entity.Boards;
-import com.sparta.spartanewsfeed.entity.BoardsLike;
-import com.sparta.spartanewsfeed.entity.Friend;
-import com.sparta.spartanewsfeed.entity.User;
-import com.sparta.spartanewsfeed.exception.NotFoundException;
+import com.sparta.spartanewsfeed.entity.*;
 import com.sparta.spartanewsfeed.repository.BoardsLikeRepository;
 import com.sparta.spartanewsfeed.repository.BoardsRepository;
+import com.sparta.spartanewsfeed.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +22,7 @@ public class BoardsService {
 
     private final BoardsRepository boardsRepository;
     private final BoardsLikeRepository boardsLikeRepository;
+    private final CommentRepository commentRepository;
 
     public BoardsResponseDto createBoard(BoardsRequestDto boardsRequestDto, User user) {
         Boards boards = new Boards(boardsRequestDto, user);
@@ -31,7 +31,8 @@ public class BoardsService {
 
     public BoardOneResponseDto getOneBoard(Long boardId) {
         List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardId, true);
-        return new BoardOneResponseDto(getOneBoardWithId(boardId), boardsLikeList.size());
+        List<Comment> comments = commentRepository.findAllByBoards_BoardId(boardId);
+        return new BoardOneResponseDto(getOneBoardWithId(boardId), boardsLikeList.size(), comments);
     }
 
     public List<BoardsResponseDto> getAllBoards(List<Friend> friendList, User user) {
@@ -70,6 +71,6 @@ public class BoardsService {
     }
 
     private Boards getOneBoardWithId(Long boardId) {
-        return boardsRepository.findById(boardId).orElseThrow(() -> new NotFoundException("게시글 ID를 찾을 수 없습니다."));
+        return boardsRepository.findById(boardId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 게시판의 ID를 찾을 수 없습니다."));
     }
 }

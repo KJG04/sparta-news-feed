@@ -8,6 +8,8 @@ import com.sparta.spartanewsfeed.entity.User;
 import com.sparta.spartanewsfeed.service.BoardsService;
 import com.sparta.spartanewsfeed.service.FriendService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,28 +23,33 @@ public class BoardsController {
     private final FriendService friendService;
 
     @PostMapping("")
-    public BoardsResponseDto createBoard(@RequestBody BoardsRequestDto boardsRequestDto, User user) {
-        return boardsService.createBoard(boardsRequestDto, user);
+    public ResponseEntity<BoardsResponseDto> createBoard(@RequestBody BoardsRequestDto boardsRequestDto, User user) {
+        BoardsResponseDto boardsResponseDto = boardsService.createBoard(boardsRequestDto, user);
+        return new ResponseEntity<>(boardsResponseDto, HttpStatus.OK);
     }
 
     @GetMapping("/{boardId}")
-    public BoardOneResponseDto getOneBoard(@PathVariable("boardId") Long boardId) {
-        return boardsService.getOneBoard(boardId);
+    public ResponseEntity<BoardOneResponseDto> getOneBoard(@PathVariable("boardId") Long boardId) {
+        BoardOneResponseDto boardOneResponseDto = boardsService.getOneBoard(boardId);
+        return new ResponseEntity<>(boardOneResponseDto, HttpStatus.OK);
     }
 
     @GetMapping("")
-    public List<BoardsResponseDto> getAllBoards(User user) {
+    public ResponseEntity<List<BoardsResponseDto>> getAllBoards(User user) {
         List<Friend> friendList = friendService.getFriendsByFromUserId(user.getUserId());
-        return boardsService.getAllBoards(friendList, user);
+        List<BoardsResponseDto> boardsResponseDtoList = boardsService.getAllBoards(friendList, user);
+        return new ResponseEntity<>(boardsResponseDtoList, HttpStatus.OK);
     }
 
     @PatchMapping("/{boardId}")
-    public BoardsResponseDto patchBoard(@PathVariable("boardId") Long boardId, @RequestBody BoardsRequestDto boardsRequestDto, User user) {
-        return boardsService.patchBoard(boardId, boardsRequestDto, user);
+    public ResponseEntity<BoardsResponseDto> patchBoard(@PathVariable("boardId") Long boardId, @RequestBody BoardsRequestDto boardsRequestDto, User user) {
+        BoardsResponseDto boardsResponseDto = boardsService.patchBoard(boardId, boardsRequestDto, user);
+        return new ResponseEntity<>(boardsResponseDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{boardId}")
-    public Long deleteBoard(@PathVariable("boardId") Long boardId, User user) {
-        return boardsService.deleteBoard(boardId, user);
+    public ResponseEntity<String> deleteBoard(@PathVariable("boardId") Long boardId, User user) {
+        boardsService.deleteBoard(boardId, user);
+        return new ResponseEntity<>("성공적으로 삭제가 되었습니다.", HttpStatus.OK);
     }
 }
