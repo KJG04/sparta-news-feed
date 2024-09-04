@@ -1,10 +1,7 @@
 package com.sparta.spartanewsfeed.service;
 
 import com.sparta.spartanewsfeed.dto.*;
-import com.sparta.spartanewsfeed.entity.Boards;
-import com.sparta.spartanewsfeed.entity.BoardsLike;
-import com.sparta.spartanewsfeed.entity.Friend;
-import com.sparta.spartanewsfeed.entity.User;
+import com.sparta.spartanewsfeed.entity.*;
 import com.sparta.spartanewsfeed.exception.NotFoundException;
 import com.sparta.spartanewsfeed.exception.PasswordErrorException;
 import com.sparta.spartanewsfeed.jwt.JwtUtil;
@@ -26,6 +23,7 @@ public class UserServiceImpl implements UserService{
     private final BoardsRepository boardsRepository;
     private final BoardsLikeRepository boardsLikeRepository;
     private final FriendRepository friendRepository;
+    private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     @Transactional
@@ -136,12 +134,20 @@ public class UserServiceImpl implements UserService{
         // 관련 board 데이터 삭제
         List<Boards> userBoards = boardsRepository.findAllByUserId(userId);
         for(Boards board : userBoards) {
-            boardsRepository.delete(board);
-
             // 해당 게시글의 좋아요 정보 삭제
             List<BoardsLike> boardsLikes = boardsLikeRepository.findAllByBoardId(board.getBoardId());
             boardsLikeRepository.deleteAll(boardsLikes);
+
+            // 해당 게시글의 댓글 정보 삭제
+            List<Comment> comments = commentRepository.findAllByBoards_BoardId(board.getBoardId());
+            commentRepository.deleteAll(comments);
+
+            boardsRepository.delete(board);
         }
+
+        // 유저가 작성한 댓글 정보 삭제
+        List<Comment> comments = commentRepository.findAllByUser_UserId(userId);
+        commentRepository.deleteAll(comments);
 
         // 유저가 좋아요를 누른 모든 BoardsLike 데이터 삭제
         List<BoardsLike> userLikes = boardsLikeRepository.findAllByUserId(userId);
