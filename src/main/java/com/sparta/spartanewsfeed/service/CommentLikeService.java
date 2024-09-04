@@ -22,7 +22,14 @@ public class CommentLikeService {
 
     @Transactional
     public void likeComment(User user, Long commentId) {
+        if (commentLikeRepository.findByComment_IdAndUser_UserId(commentId, user.getUserId()).isPresent())
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 좋아요를 했습니다.");
+
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "commentId에 해당하는 Comment가 없습니다."));
+
+        if (comment.getUser().getUserId().equals(user.getUserId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "자신의 댓글에는 좋아요 할 수 없습니다.");
+
         CommentLike commentLike = CommentLike.builder().comment(comment).user(user).build();
         commentLikeRepository.save(commentLike);
     }
