@@ -8,6 +8,10 @@ import com.sparta.spartanewsfeed.repository.BoardsLikeRepository;
 import com.sparta.spartanewsfeed.repository.BoardsRepository;
 import com.sparta.spartanewsfeed.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +33,7 @@ public class BoardsService {
         return new BoardsResponseDto(boardsRepository.save(boards));
     }
 
-    public BoardOneResponseDto getOneBoard(Long boardId) {
-        List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardId, true);
-        List<Comment> comments = commentRepository.findAllByBoards_BoardId(boardId);
-        return new BoardOneResponseDto(getOneBoardWithId(boardId), boardsLikeList.size(), comments);
-    }
-
-    public List<BoardsResponseDto> getAllBoards(List<Friend> friendList, User user) {
+    public BoardOneResponseDto getOneBoard(Long boardId, List<Friend> friendList, User user) {
         List<Long> userList = new ArrayList<>();
         // 자신의 글을 불러오기 위해 로그인 한 사람 id 추가
         userList.add(user.getUserId());
@@ -44,7 +42,42 @@ public class BoardsService {
             userList.add(friend.getToUser().getUserId());
         }
 
-        return boardsRepository.findAllByUserIdIn(userList).stream().map(BoardsResponseDto::new).toList();
+        Boards boards = boardsRepository.findById(boardId).orElseThrow();
+
+        if(!userList.contains(boards.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 게시판의 접근이 불가능합니다.");
+        }
+
+        List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardId, true);
+        List<Comment> comments = commentRepository.findAllByBoards_BoardId(boardId);
+        return new BoardOneResponseDto(getOneBoardWithId(boardId), boardsLikeList.size(), comments);
+    }
+
+    public Page<BoardsResponseDto> getAllBoards(int page, int size, String sortBy, boolean isAsc, List<Friend> friendList, User user) {
+        // pageing 처리
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        List<Long> userList = new ArrayList<>();
+        // 자신의 글을 불러오기 위해 로그인 한 사람 id 추가
+        userList.add(user.getUserId());
+        // 친구들의 글을 불러오기 위해 친구 id 추가
+        for (Friend friend : friendList) {
+            userList.add(friend.getToUser().getUserId());
+        }
+
+        // 친구의 글을 가져와서 dto에 넣어줌
+        Page<BoardsResponseDto> boardsResponseDtoList = boardsRepository.findAllByUserIdIn(pageable, userList).map(BoardsResponseDto::new);
+
+        // 댓글 개수와, 좋아요개수 넣어줌
+        for (BoardsResponseDto boardsResponseDto : boardsResponseDtoList) {
+            List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardsResponseDto.getBoardId(), true);
+            List<Comment> comments = commentRepository.findAllByBoards_BoardId(boardsResponseDto.getBoardId());
+            boardsResponseDto.update(boardsLikeList.size(), comments.size());
+        }
+
+        return boardsResponseDtoList;
     }
 
     @Transactional

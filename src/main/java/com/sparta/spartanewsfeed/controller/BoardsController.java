@@ -8,6 +8,7 @@ import com.sparta.spartanewsfeed.entity.User;
 import com.sparta.spartanewsfeed.service.BoardsService;
 import com.sparta.spartanewsfeed.service.FriendService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,15 +30,20 @@ public class BoardsController {
     }
 
     @GetMapping("/{boardId}")
-    public ResponseEntity<BoardOneResponseDto> getOneBoard(@PathVariable("boardId") Long boardId) {
-        BoardOneResponseDto boardOneResponseDto = boardsService.getOneBoard(boardId);
+    public ResponseEntity<BoardOneResponseDto> getOneBoard(@PathVariable("boardId") Long boardId, User user) {
+        List<Friend> friendList = friendService.getFriendsByFromUserId(user.getUserId());
+        BoardOneResponseDto boardOneResponseDto = boardsService.getOneBoard(boardId, friendList, user);
         return new ResponseEntity<>(boardOneResponseDto, HttpStatus.OK);
     }
 
     @GetMapping("")
-    public ResponseEntity<List<BoardsResponseDto>> getAllBoards(User user) {
+    public ResponseEntity<Page<BoardsResponseDto>> getAllBoards(@RequestParam(name = "page", defaultValue = "1") int page,
+                                                                @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                @RequestParam(name = "sortBy",defaultValue = "updateAt") String sortBy,
+                                                                @RequestParam(name = "isAsc", defaultValue = "false") boolean isAsc,
+                                                                User user) {
         List<Friend> friendList = friendService.getFriendsByFromUserId(user.getUserId());
-        List<BoardsResponseDto> boardsResponseDtoList = boardsService.getAllBoards(friendList, user);
+        Page<BoardsResponseDto> boardsResponseDtoList = boardsService.getAllBoards(page-1, size, sortBy, isAsc, friendList, user);
         return new ResponseEntity<>(boardsResponseDtoList, HttpStatus.OK);
     }
 
