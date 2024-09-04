@@ -32,6 +32,7 @@ public class CommentController {
                                 .id(v.getId())
                                 .contents(v.getContents())
                                 .user(new UserResponseDto(v.getUser()))
+                                .likeCount((long) v.getLikes().size())
                                 .build()
                 ).toList();
         return ResponseEntity.ok(commentResponseDtos);
@@ -45,6 +46,7 @@ public class CommentController {
                         id(comment.getId())
                         .contents(comment.getContents())
                         .user(new UserResponseDto(comment.getUser()))
+                        .likeCount((long) comment.getLikes().size())
                         .build()
         );
     }

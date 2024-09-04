@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table
 @Getter
@@ -27,10 +29,14 @@ public class Comment {
     @JoinColumn(name = "user_id")
     User user;
 
+    @OneToMany(mappedBy = "comment")
+    List<CommentLike> likes;
+
     @Builder
-    public Comment(String contents, Boards boards, User user) {
+    public Comment(String contents, Boards boards, User user, List<CommentLike> likes) {
         this.contents = contents;
         this.boards = boards;
         this.user = user;
+        this.likes = likes;
     }
 }
