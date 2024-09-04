@@ -3,8 +3,8 @@ package com.sparta.spartanewsfeed.controller;
 import com.sparta.spartanewsfeed.dto.BoardOneResponseDto;
 import com.sparta.spartanewsfeed.dto.BoardsRequestDto;
 import com.sparta.spartanewsfeed.dto.BoardsResponseDto;
-import com.sparta.spartanewsfeed.service.BoardsService;
 import com.sparta.spartanewsfeed.entity.User;
+import com.sparta.spartanewsfeed.service.BoardsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
