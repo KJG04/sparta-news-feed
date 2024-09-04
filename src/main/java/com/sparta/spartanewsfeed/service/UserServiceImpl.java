@@ -1,19 +1,18 @@
 package com.sparta.spartanewsfeed.service;
 
 import com.sparta.spartanewsfeed.dto.*;
-import com.sparta.spartanewsfeed.entity.Boards;
-import com.sparta.spartanewsfeed.entity.BoardsLike;
-import com.sparta.spartanewsfeed.entity.Friend;
-import com.sparta.spartanewsfeed.entity.User;
+import com.sparta.spartanewsfeed.entity.*;
 import com.sparta.spartanewsfeed.exception.NotFoundException;
 import com.sparta.spartanewsfeed.exception.PasswordErrorException;
 import com.sparta.spartanewsfeed.jwt.JwtUtil;
 import com.sparta.spartanewsfeed.repository.*;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,11 +23,17 @@ public class UserServiceImpl implements UserService{
     private final BoardsRepository boardsRepository;
     private final BoardsLikeRepository boardsLikeRepository;
     private final FriendRepository friendRepository;
+    private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     @Transactional
     @Override
     public UserResponseDto save(UserRequestDto userRequestDto) {
+        // email 중복 체크
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "중복된 이메일입니다.");
+        }
+
         String password = passwordEncoder.encode(userRequestDto.getPassword());
         User user = new User(userRequestDto);
         user.setPassword(password);
@@ -83,10 +88,14 @@ public class UserServiceImpl implements UserService{
         // 비밀번호 교체에 대한 요청이 있을 시에
         if(userModifyRequestDto.getPassword() != null) {
             String password = userModifyRequestDto.getPassword();
-            String newPassword = passwordEncoder.encode(userModifyRequestDto.getNewPassword());
+            String newPassword = userModifyRequestDto.getNewPassword();
+            if(password.equals(newPassword)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "동일한 비밀번호로 변경할 수 없습니다!");
+            }
+            String newPw = passwordEncoder.encode(userModifyRequestDto.getNewPassword());
             // 비밀번호 교체
             if(passwordEncoder.matches(password, newUser.getPassword())) {
-                newUser.changePassword(newPassword);
+                newUser.changePassword(newPw);
             } else {
                 throw new PasswordErrorException("비밀번호가 일치하지 않습니다.");
             }
@@ -125,12 +134,20 @@ public class UserServiceImpl implements UserService{
         // 관련 board 데이터 삭제
         List<Boards> userBoards = boardsRepository.findAllByUserId(userId);
         for(Boards board : userBoards) {
-            boardsRepository.delete(board);
-
             // 해당 게시글의 좋아요 정보 삭제
             List<BoardsLike> boardsLikes = boardsLikeRepository.findAllByBoardId(board.getBoardId());
             boardsLikeRepository.deleteAll(boardsLikes);
+
+            // 해당 게시글의 댓글 정보 삭제
+            List<Comment> comments = commentRepository.findAllByBoards_BoardId(board.getBoardId());
+            commentRepository.deleteAll(comments);
+
+            boardsRepository.delete(board);
         }
+
+        // 유저가 작성한 댓글 정보 삭제
+        List<Comment> comments = commentRepository.findAllByUser_UserId(userId);
+        commentRepository.deleteAll(comments);
 
         // 유저가 좋아요를 누른 모든 BoardsLike 데이터 삭제
         List<BoardsLike> userLikes = boardsLikeRepository.findAllByUserId(userId);

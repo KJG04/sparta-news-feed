@@ -16,4 +16,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> getUser(@Param("userId") Long userId);
 
     Optional<User> findByUserIdAndDeleteStatus(Long userId, Boolean deleteStatus);
+
+    boolean existsByEmail(String email);
 }
