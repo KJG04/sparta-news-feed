@@ -19,11 +19,11 @@ public class Comment {
     @Column(nullable = false)
     String contents;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "board_id")
     Boards boards;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     User user;
 

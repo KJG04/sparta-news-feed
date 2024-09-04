@@ -1,9 +1,13 @@
 package com.sparta.spartanewsfeed.controller;
 
 import com.sparta.spartanewsfeed.dto.CommentResponseDto;
+import com.sparta.spartanewsfeed.dto.CreateCommentRequestDto;
 import com.sparta.spartanewsfeed.dto.UserResponseDto;
 import com.sparta.spartanewsfeed.entity.Comment;
+import com.sparta.spartanewsfeed.entity.User;
 import com.sparta.spartanewsfeed.service.CommentService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,8 +37,15 @@ public class CommentController {
     }
 
     @PostMapping()
-    void addComment() {
-
+    ResponseEntity<CommentResponseDto> addComment(User user, @RequestBody @Valid CreateCommentRequestDto createCommentRequestDto) {
+        Comment comment = commentService.addComment(user.getUserId(), createCommentRequestDto.getBoardId(), createCommentRequestDto.getContents());
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                CommentResponseDto.builder().
+                        id(comment.getId())
+                        .contents(comment.getContents())
+                        .userResponseDto(new UserResponseDto(comment.getUser()))
+                        .build()
+        );
     }
 
     @PatchMapping("/{commentId}")
