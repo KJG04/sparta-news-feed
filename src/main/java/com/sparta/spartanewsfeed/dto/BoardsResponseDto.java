@@ -8,6 +8,8 @@ public class BoardsResponseDto {
     private Long boardId;
     private String contents;
     private Long userId;
+    private int likeCount;
+    private int commentCount;
 
     public BoardsResponseDto(Boards board) {
         boardId = board.getBoardId();
@@ -15,4 +17,8 @@ public class BoardsResponseDto {
         userId = board.getUserId();
     }
 
+    public void update(int likeCount, int commentCount) {
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
+    }
 }
