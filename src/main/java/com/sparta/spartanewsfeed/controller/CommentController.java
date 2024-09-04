@@ -2,6 +2,7 @@ package com.sparta.spartanewsfeed.controller;
 
 import com.sparta.spartanewsfeed.dto.CommentResponseDto;
 import com.sparta.spartanewsfeed.dto.CreateCommentRequestDto;
+import com.sparta.spartanewsfeed.dto.UpdateCommentRequestDto;
 import com.sparta.spartanewsfeed.dto.UserResponseDto;
 import com.sparta.spartanewsfeed.entity.Comment;
 import com.sparta.spartanewsfeed.entity.User;
@@ -49,12 +50,20 @@ public class CommentController {
     }
 
     @PatchMapping("/{commentId}")
-    void updateComment(@PathVariable Long commentId) {
+    ResponseEntity<CommentResponseDto> updateComment(@PathVariable Long commentId, User user, @RequestBody @Valid UpdateCommentRequestDto updateCommentRequestDto) {
+        Comment comment = commentService.updateComment(user.getUserId(), commentId, updateCommentRequestDto.getContents());
+        return ResponseEntity.ok(
+                CommentResponseDto.builder().
+                        id(comment.getId())
+                        .contents(comment.getContents())
+                        .user(new UserResponseDto(comment.getUser()))
+                        .build()
+        );
     }
 
     @DeleteMapping("/{commentId}")
-    ResponseEntity deleteComment(@PathVariable Long commentId) {
-        commentService.deleteComment(commentId);
+    ResponseEntity deleteComment(@PathVariable Long commentId, User user) {
+        commentService.deleteComment(user.getUserId(), commentId);
         return ResponseEntity.noContent().build();
     }
 }

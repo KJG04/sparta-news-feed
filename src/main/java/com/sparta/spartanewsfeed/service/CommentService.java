@@ -40,7 +40,21 @@ public class CommentService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId) {
-        commentRepository.deleteById(commentId);
+    public void deleteComment(Long userId, Long commentId) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "commentId에 해당하는 Comment가 없습니다."));
+        if (!comment.getUser().getUserId().equals(userId) && !comment.getBoards().getUserId().equals(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다.");
+
+        commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public Comment updateComment(Long userId, Long commentId, String contents) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "commentId에 해당하는 Comment가 없습니다."));
+        if (!comment.getUser().getUserId().equals(userId) && !comment.getBoards().getUserId().equals(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "댓글 삭제 권한이 없습니다.");
+
+        comment.setContents(contents);
+        return commentRepository.save(comment);
     }
 }
