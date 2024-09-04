@@ -5,6 +5,7 @@ import com.sparta.spartanewsfeed.dto.BoardsRequestDto;
 import com.sparta.spartanewsfeed.dto.BoardsResponseDto;
 import com.sparta.spartanewsfeed.entity.Boards;
 import com.sparta.spartanewsfeed.entity.BoardsLike;
+import com.sparta.spartanewsfeed.entity.Friend;
 import com.sparta.spartanewsfeed.entity.User;
 import com.sparta.spartanewsfeed.exception.NotFoundException;
 import com.sparta.spartanewsfeed.repository.BoardsLikeRepository;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,8 +34,16 @@ public class BoardsService {
         return new BoardOneResponseDto(getOneBoardWithId(boardId), boardsLikeList.size());
     }
 
-    public List<BoardsResponseDto> getAllBoards() {
-        return boardsRepository.findAll().stream().map(BoardsResponseDto::new).toList();
+    public List<BoardsResponseDto> getAllBoards(List<Friend> friendList, User user) {
+        List<Long> userList = new ArrayList<>();
+        // 자신의 글을 불러오기 위해 로그인 한 사람 id 추가
+        userList.add(user.getUserId());
+        // 친구들의 글을 불러오기 위해 친구 id 추가
+        for (Friend friend : friendList) {
+            userList.add(friend.getToUser().getUserId());
+        }
+
+        return boardsRepository.findAllByUserIdIn(userList).stream().map(BoardsResponseDto::new).toList();
     }
 
     @Transactional
