@@ -38,4 +38,9 @@ public class CommentService {
         Comment comment = Comment.builder().contents(contents).user(user).boards(boards).build();
         return commentRepository.save(comment);
     }
+
+    @Transactional
+    public void deleteComment(Long commentId) {
+        commentRepository.deleteById(commentId);
+    }
 }

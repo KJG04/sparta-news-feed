@@ -9,5 +9,5 @@ import lombok.*;
 public class CommentResponseDto {
     Long id;
     String contents;
-    UserResponseDto userResponseDto;
+    UserResponseDto user;
 }

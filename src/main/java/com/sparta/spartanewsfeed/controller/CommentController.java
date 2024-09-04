@@ -30,7 +30,7 @@ public class CommentController {
                         CommentResponseDto.builder()
                                 .id(v.getId())
                                 .contents(v.getContents())
-                                .userResponseDto(new UserResponseDto(v.getUser()))
+                                .user(new UserResponseDto(v.getUser()))
                                 .build()
                 ).toList();
         return ResponseEntity.ok(commentResponseDtos);
@@ -43,17 +43,18 @@ public class CommentController {
                 CommentResponseDto.builder().
                         id(comment.getId())
                         .contents(comment.getContents())
-                        .userResponseDto(new UserResponseDto(comment.getUser()))
+                        .user(new UserResponseDto(comment.getUser()))
                         .build()
         );
     }
 
     @PatchMapping("/{commentId}")
-    void updateComment(@PathVariable String commentId) {
+    void updateComment(@PathVariable Long commentId) {
     }
 
     @DeleteMapping("/{commentId}")
-    void deleteComment(@PathVariable String commentId) {
+    ResponseEntity deleteComment(@PathVariable Long commentId) {
+        commentService.deleteComment(commentId);
+        return ResponseEntity.noContent().build();
     }
-
 }
