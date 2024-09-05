@@ -24,13 +24,7 @@ public class CommentService {
         this.userRepository = userRepository;
         this.boardsRepository = boardsRepository;
     }
-
-    @Transactional
-    public List<Comment> getAllComments() {
-        // 삭제되지 않은 유저의 댓글만
-        return commentRepository.getAllByUser_DeleteStatus(false);
-    }
-
+    
     @Transactional
     public Comment addComment(Long userId, Long boardId, String contents) {
         User user = userRepository.findByUserIdAndDeleteStatus(userId, false).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "userId에 해당하는 User가 없습니다."));

@@ -12,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/comments")
 public class CommentController {
@@ -21,21 +19,6 @@ public class CommentController {
 
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
-    }
-
-    @GetMapping()
-    ResponseEntity<List<CommentResponseDto>> getAllComments() {
-        List<Comment> comments = commentService.getAllComments();
-        List<CommentResponseDto> commentResponseDtos = comments.stream()
-                .map(v ->
-                        CommentResponseDto.builder()
-                                .id(v.getId())
-                                .contents(v.getContents())
-                                .user(new UserResponseDto(v.getUser()))
-                                .likeCount((long) v.getLikes().size())
-                                .build()
-                ).toList();
-        return ResponseEntity.ok(commentResponseDtos);
     }
 
     @PostMapping()
