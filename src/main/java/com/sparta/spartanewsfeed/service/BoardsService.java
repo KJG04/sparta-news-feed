@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,6 +69,37 @@ public class BoardsService {
 
         // 친구의 글을 가져와서 dto에 넣어줌
         Page<BoardsResponseDto> boardsResponseDtoList = boardsRepository.findAllByUserIdIn(pageable, userList).map(BoardsResponseDto::new);
+
+        // 댓글 개수와, 좋아요개수 넣어줌
+        for (BoardsResponseDto boardsResponseDto : boardsResponseDtoList) {
+            List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardsResponseDto.getBoardId(), true);
+            List<Comment> comments = commentRepository.findAllByBoards_BoardId(boardsResponseDto.getBoardId());
+            boardsResponseDto.update(boardsLikeList.size(), comments.size());
+        }
+
+        return boardsResponseDtoList;
+    }
+
+    public Page<BoardsResponseDto> getAllBoardsWithDate(int page, int size, String sortBy, boolean isAsc, List<Friend> friendList, String startDate, String endDate, User user) {
+        // pageing 처리
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        List<Long> userList = new ArrayList<>();
+        // 자신의 글을 불러오기 위해 로그인 한 사람 id 추가
+        userList.add(user.getUserId());
+        // 친구들의 글을 불러오기 위해 친구 id 추가
+        for (Friend friend : friendList) {
+            userList.add(friend.getToUser().getUserId());
+        }
+
+        // 친구의 글을 가져와서 dto에 넣어줌
+        LocalDateTime startDateTime = LocalDateTime.of(Integer.parseInt(startDate.substring(0, 4)), Integer.parseInt(startDate.substring(5, 7)), Integer.parseInt(startDate.substring(8, 10)), 0, 0, 0);
+        LocalDateTime endDateTime = LocalDateTime.of(Integer.parseInt(endDate.substring(0, 4)), Integer.parseInt(endDate.substring(5, 7)), Integer.parseInt(endDate.substring(8, 10)), 23, 59, 59);
+        System.out.println(startDateTime);
+        System.out.println(endDateTime);
+        Page<BoardsResponseDto> boardsResponseDtoList = boardsRepository.findAllByUserIdAndDate(pageable, userList, startDateTime, endDateTime).map(BoardsResponseDto::new);
 
         // 댓글 개수와, 좋아요개수 넣어줌
         for (BoardsResponseDto boardsResponseDto : boardsResponseDtoList) {
