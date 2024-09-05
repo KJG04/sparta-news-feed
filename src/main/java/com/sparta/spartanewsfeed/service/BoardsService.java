@@ -6,6 +6,7 @@ import com.sparta.spartanewsfeed.dto.BoardsResponseDto;
 import com.sparta.spartanewsfeed.entity.*;
 import com.sparta.spartanewsfeed.repository.BoardsLikeRepository;
 import com.sparta.spartanewsfeed.repository.BoardsRepository;
+import com.sparta.spartanewsfeed.repository.CommentLikeRepository;
 import com.sparta.spartanewsfeed.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ public class BoardsService {
     private final BoardsRepository boardsRepository;
     private final BoardsLikeRepository boardsLikeRepository;
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     public BoardsResponseDto createBoard(BoardsRequestDto boardsRequestDto, User user) {
         Boards boards = new Boards(boardsRequestDto, user);
@@ -118,7 +120,7 @@ public class BoardsService {
         if (board.getUserId().equals(user.getUserId())) {
             return new BoardsResponseDto(board.update(boardsRequestDto));
         } else {
-            throw new SecurityException("권한이 없습니다.");
+            throw new ResponseStatusException( HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }
     }
 
@@ -127,10 +129,26 @@ public class BoardsService {
         // 작성자만 글을 삭제할 수 있습니다.
         Boards boards = getOneBoardWithId(boardId);
         if (boards.getUserId().equals(user.getUserId())) {
+            // 해당 게시글의 좋아요 정보 삭제
+            List<BoardsLike> boardsLikes = boardsLikeRepository.findAllByBoardId(boards.getBoardId());
+            boardsLikeRepository.deleteAll(boardsLikes);
+
+            // 해당 게시글의 댓글 정보 삭제 -> Boards필드의 boardId와 같은 값의 댓글들 정보를 조회
+            List<Comment> comments = commentRepository.findAllByBoards_BoardId(boards.getBoardId());
+            for(Comment comment : comments) {
+                // 관련된 각 댓글에 달린 좋아요 정보 삭제
+                List<CommentLike> commentLikes = comment.getLikes();
+                // 해당 댓글에 좋아요가 달려있는지 확인
+                if(commentLikes != null && !commentLikes.isEmpty()) {
+                    commentLikeRepository.deleteAll(commentLikes);
+                }
+            }
+            commentRepository.deleteAll(comments);
+
             boardsRepository.delete(getOneBoardWithId(boardId));
             return boardId;
         } else {
-            throw new SecurityException("권한이 없습니다.");
+            throw new ResponseStatusException( HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }
     }
 
