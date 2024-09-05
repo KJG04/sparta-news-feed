@@ -47,6 +47,19 @@ public class BoardsController {
         return new ResponseEntity<>(boardsResponseDtoList, HttpStatus.OK);
     }
 
+    @GetMapping("/date")
+    public ResponseEntity<Page<BoardsResponseDto>> getAllBoardsWithDate(@RequestParam(name = "page", defaultValue = "1") int page,
+                                                                        @RequestParam(name = "size", defaultValue = "10") int size,
+                                                                        @RequestParam(name = "sortBy",defaultValue = "createAt") String sortBy,
+                                                                        @RequestParam(name = "isAsc", defaultValue = "false") boolean isAsc,
+                                                                        @RequestParam(name = "startDate", defaultValue = "") String startDate,
+                                                                        @RequestParam(name = "endDate", defaultValue = "") String endDate,
+                                                                        User user) {
+        List<Friend> friendList = friendService.getFriendsByFromUserId(user.getUserId());
+        Page<BoardsResponseDto> boardsResponseDtoList = boardsService.getAllBoardsWithDate(page-1, size, sortBy, isAsc, friendList, startDate, endDate ,user);
+        return new ResponseEntity<>(boardsResponseDtoList, HttpStatus.OK);
+    }
+
     @PatchMapping("/{boardId}")
     public ResponseEntity<BoardsResponseDto> patchBoard(@PathVariable("boardId") Long boardId, @RequestBody BoardsRequestDto boardsRequestDto, User user) {
         BoardsResponseDto boardsResponseDto = boardsService.patchBoard(boardId, boardsRequestDto, user);
