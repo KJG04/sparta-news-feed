@@ -19,13 +19,21 @@ public class Boards extends BaseEntity{
     @Column(name = "userId")
     private Long userId;
 
+    @Column(name = "likeCount")
+    private int likeCount;
+
     public Boards(BoardsRequestDto boardsRequestDto, User user) {
         this.contents = boardsRequestDto.getContents();
         this.userId = user.getUserId();
+        this.likeCount = 0;
     }
 
     public Boards update(BoardsRequestDto boardsRequestDto){
         contents = boardsRequestDto.getContents();
         return this;
+    }
+
+    public void likeUpdate(int likeCount){
+        this.likeCount = likeCount;
     }
 }

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +35,16 @@ public class BoardsLikeService {
         if (boardsLike == null) {
             BoardsLike newboardsLike = new BoardsLike(user.getUserId(), boardId, true);
             BoardsLike saveBoardsLike = boardsLikeRepository.save(newboardsLike);
-            return new BoardsLikeResponseDto(saveBoardsLike);
+            BoardsLikeResponseDto boardsLikeResponseDto = new BoardsLikeResponseDto(saveBoardsLike);
+            List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardId, true);
+            board.likeUpdate(boardsLikeList.size());
+            return boardsLikeResponseDto;
         } else {
-            return new BoardsLikeResponseDto(boardsLike.update());
+            BoardsLikeResponseDto boardsLikeResponseDto = new BoardsLikeResponseDto(boardsLike.update());
+            List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardId, true);
+            board.likeUpdate(boardsLikeList.size());
+            return boardsLikeResponseDto;
         }
+
     }
 }

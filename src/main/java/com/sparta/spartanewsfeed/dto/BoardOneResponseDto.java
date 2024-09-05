@@ -14,11 +14,11 @@ public class BoardOneResponseDto {
     private Long userId;
     private List<CommentResponseDto> commentResponseDtos;
 
-    public BoardOneResponseDto(Boards board, int likeCount, List<Comment> comments) {
+    public BoardOneResponseDto(Boards board, List<Comment> comments) {
         userId = board.getUserId();
         boardId = board.getBoardId();
         contents = board.getContents();
-        this.likeCount = likeCount;
+        likeCount = board.getLikeCount();
 
         List<CommentResponseDto> commentResponseDtos = comments.stream()
                 .map(v ->
