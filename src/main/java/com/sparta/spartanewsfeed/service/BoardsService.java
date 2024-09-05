@@ -48,9 +48,8 @@ public class BoardsService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 게시판의 접근이 불가능합니다.");
         }
 
-        List<BoardsLike> boardsLikeList = boardsLikeRepository.findAllByBoardIdAndLikeState(boardId, true);
         List<Comment> comments = commentRepository.findAllByBoards_BoardId(boardId);
-        return new BoardOneResponseDto(getOneBoardWithId(boardId), boardsLikeList.size(), comments);
+        return new BoardOneResponseDto(getOneBoardWithId(boardId), comments);
     }
 
     public Page<BoardsResponseDto> getAllBoards(int page, int size, String sortBy, boolean isAsc, List<Friend> friendList, User user) {
