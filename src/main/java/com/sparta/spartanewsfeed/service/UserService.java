@@ -29,7 +29,7 @@ public class UserService {
     public UserResponseDto save(UserRequestDto userRequestDto) {
         // email 중복 체크
         if (userRepository.existsByEmail(userRequestDto.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "중복된 이메일입니다.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "중복된 이메일입니다.");
         }
 
         String password = passwordEncoder.encode(userRequestDto.getPassword());
@@ -49,7 +49,7 @@ public class UserService {
                 () -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "해당 email에 대한 사용자가 없습니다!")
         );
         if(user.getDeleteStatus().equals(true)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "탈퇴한 유저입니다!");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 유저입니다!");
         }
 
         // 비밀번호 확인
@@ -113,7 +113,7 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저가 존재하지 않습니다!"));
 
         if(newUser.getDeleteStatus().equals(true)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "이미 탈퇴한 유저입니다!");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이미 탈퇴한 유저입니다!");
         }
 
         if(!userId.equals(user.getUserId())) {
@@ -122,7 +122,7 @@ public class UserService {
 
         String password = userDeleteRequestDto.getPassword();
         if(!passwordEncoder.matches(password, newUser.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "비밀번호가 일치하지 않습니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
         }
 
         // 관련 board 데이터 삭제
