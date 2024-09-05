@@ -39,7 +39,7 @@ public class BoardsController {
     @GetMapping("")
     public ResponseEntity<Page<BoardsResponseDto>> getAllBoards(@RequestParam(name = "page", defaultValue = "1") int page,
                                                                 @RequestParam(name = "size", defaultValue = "10") int size,
-                                                                @RequestParam(name = "sortBy",defaultValue = "updateAt") String sortBy,
+                                                                @RequestParam(name = "sortBy",defaultValue = "createAt") String sortBy,
                                                                 @RequestParam(name = "isAsc", defaultValue = "false") boolean isAsc,
                                                                 User user) {
         List<Friend> friendList = friendService.getFriendsByFromUserId(user.getUserId());
