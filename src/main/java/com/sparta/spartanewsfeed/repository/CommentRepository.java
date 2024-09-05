@@ -16,10 +16,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> getAllByUser_DeleteStatus(Boolean user_deleteStatus);
 
     // 특정 게시글에 대한 모든 댓글 찾기
+    @EntityGraph(attributePaths = {"likes"})
     @Query("SELECT c FROM Comment c WHERE c.boards.boardId =:boardId")
     List<Comment> findAllByBoards_BoardId(@Param("boardId") Long boardId);
 
     // 특정 유저의 댓글 찾기
+    @EntityGraph(attributePaths = {"likes"})
     @Query("SELECT c FROM Comment c WHERE c.user.userId = :userId")
     List<Comment> findAllByUser_UserId(@Param("userId") Long userId);
 }
