@@ -22,6 +22,7 @@ public class UserService {
     private final BoardsLikeRepository boardsLikeRepository;
     private final FriendRepository friendRepository;
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     @Transactional
@@ -131,24 +132,43 @@ public class UserService {
             List<BoardsLike> boardsLikes = boardsLikeRepository.findAllByBoardId(board.getBoardId());
             boardsLikeRepository.deleteAll(boardsLikes);
 
-            // 해당 게시글의 댓글 정보 삭제
+            // 해당 게시글의 댓글 정보 삭제 -> Boards필드의 boardId와 같은 값의 댓글들 정보를 조회
             List<Comment> comments = commentRepository.findAllByBoards_BoardId(board.getBoardId());
+            for(Comment comment : comments) {
+                // 관련된 각 댓글에 달린 좋아요 정보 삭제
+                List<CommentLike> commentLikes = comment.getLikes();
+                // 해당 댓글에 좋아요가 달려있는지 확인
+                if(commentLikes != null && !commentLikes.isEmpty()) {
+                    commentLikeRepository.deleteAll(commentLikes);
+                }
+            }
             commentRepository.deleteAll(comments);
 
             boardsRepository.delete(board);
         }
 
         // 유저가 작성한 댓글 정보 삭제
-        List<Comment> comments = commentRepository.findAllByUser_UserId(userId);
-        commentRepository.deleteAll(comments);
+        List<Comment> userComments = commentRepository.findAllByUser_UserId(userId);
+        for(Comment comment : userComments) {
+            List<CommentLike> commentLikes = comment.getLikes();
+            // 해당 댓글에 좋아요가 달려있는지 확인
+            if (commentLikes != null && !commentLikes.isEmpty()) {
+                commentLikeRepository.deleteAll(commentLikes);
+            }
+        }
+        commentRepository.deleteAll(userComments);
+
+        // 유저가 직접 누른 모든 CommentLike 데이터 삭제
+        List<CommentLike> userCommentLikes = commentLikeRepository.findAllByUser_UserId(userId);
+        commentLikeRepository.deleteAll(userCommentLikes);
 
         // 유저가 좋아요를 누른 모든 BoardsLike 데이터 삭제
         List<BoardsLike> userLikes = boardsLikeRepository.findAllByUserId(userId);
         boardsLikeRepository.deleteAll(userLikes);
 
         // 해당 유저가 포함된 모든 친구 관계 삭제 (fromUser, toUser)
-        List<Friend> userFriendsAsFrom = friendRepository.findAllByFromUser(user);
-        List<Friend> userFriendsAsTo = friendRepository.findAllByToUser(user);
+        List<Friend> userFriendsAsFrom = friendRepository.findAllByFromUser(userId);
+        List<Friend> userFriendsAsTo = friendRepository.findAllByToUser(userId);
         friendRepository.deleteAll(userFriendsAsFrom);
         friendRepository.deleteAll(userFriendsAsTo);
 
